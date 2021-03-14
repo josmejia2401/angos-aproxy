@@ -6,8 +6,8 @@
 		"port": 9090,
 		"hostname": "localhost"
 	},
-	"angos": {
-		"default": {
+	"aproxy": {
+		"defaulta": {
 			"connect_timeout_millis": 10000,
 			"socket_timeout_millis": 10000,
 			"max_total_connections": 50,
