@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+	<Properties>
+		<Property name="LOG_PATTERN">%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} [%t] %-5level %logger{36} - %msg%n</Property>
+		<Property name="APP_LOG_ROOT">log/tomcat0/logs</Property>
+	</Properties>
+	
+	<!-- 
+	Standard Level	intLevel
+	OFF	0
+	FATAL	100
+	ERROR	200
+	WARN	300
+	INFO	400
+	DEBUG	500
+	TRACE	600
+	ALL	Integer.MAX_VALUE
+	 -->
+	<Appenders>
+		<Console name="console_log" target="SYSTEM_OUT" follow="true">
+			<PatternLayout pattern="${LOG_PATTERN}" />
+		</Console>
+
+		<RollingFile name="framework_log" fileName="${APP_LOG_ROOT}/app-framework.log" filePattern="${APP_LOG_ROOT}/$${date:yyyy-MM}/app-framework-%d{yyyy-MM-dd}-%i.log.gz">
+			<LevelRangeFilter minLevel="ERROR" maxLevel="ERROR" onMatch="ACCEPT" onMismatch="DENY" />
+			<PatternLayout pattern="${LOG_PATTERN}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="19500KB" />
+			</Policies>
+			<DefaultRolloverStrategy max="10" />
+		</RollingFile>
+		
+		<RollingFile name="debug_log" fileName="${APP_LOG_ROOT}/aproxy-debug.log" filePattern="${APP_LOG_ROOT}/$${date:yyyy-MM}/aproxy-debug-%d{yyyy-MM-dd}-%i.log.gz">
+            <LevelRangeFilter minLevel="DEBUG" maxLevel="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+            	<TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="19500KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        
+        <RollingFile name="all_Log" fileName="${APP_LOG_ROOT}/aproxy.log" filePattern="${APP_LOG_ROOT}/$${date:yyyy-MM}/aproxy-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+            	<TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="19500KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        
+	</Appenders>
+	<Loggers>
+		<Logger name="co.com.angos" additivity="false" level="all">
+            <AppenderRef ref="debug_log"  />
+            <AppenderRef ref="all_Log"  />
+            <AppenderRef ref="console_log"  />
+        </Logger>
+		 <Logger name="org.springframework" additivity="false" level="error">
+            <AppenderRef ref="framework_log" />
+            <AppenderRef ref="console_log"/>
+        </Logger>
+        <Root level="error">
+			<AppenderRef ref="all_Log"/>
+            <AppenderRef ref="console_log"/>
+        </Root>
+	</Loggers>
+</Configuration>

@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Built-By: jox
+Build-Jdk: 15.0.1
+Main-Class: co.com.angos.aproxy.Application
+Created-By: Maven Integration for Eclipse
+

@@ -1,0 +1,83 @@
+{
+	"application": {
+		"name": ""
+	},
+	"server": {
+		"port": 9090,
+		"hostname": "localhost"
+	},
+	"angos": {
+		"default": {
+			"connect_timeout_millis": 10000,
+			"socket_timeout_millis": 10000,
+			"max_total_connections": 50,
+			"max_core_connections": 1,
+			"max_queue_listen": 2500,
+			"max_length_recv": 2048,
+			"retry": {
+				"max_auto_retry": 1,
+				"retryable_status_code": [
+					500,
+					400
+				]
+			}
+		},
+		"routes": [
+			{
+				"id": "1",
+				"id_service": "",
+				"path": "/todos/*",
+				"url": [
+					"http://jsonplaceholder.typicode.com",
+					"http://jsonplaceholder.typicode.com",
+					"https://jsonplaceholder.typicode.com"
+				],
+				"retry": true,
+				"desc": "https://jsonplaceholder.typicode.com/"
+			},
+			{
+				"id": "2",
+				"id_service": "",
+				"path": "/api/v1/**",
+				"url": [
+					"http://dummy.restapiexample.com"
+				],
+				"retry": false,
+				"desc": "http://dummy.restapiexample.com/"
+			},
+			{
+				"id": "3",
+				"id_service": "",
+				"path": "/_next/static/**",
+				"url": [
+					"http://docs.expo.io",
+					"http://docs.expo.io"
+				],
+				"retry": false,
+				"desc": "http://dummy.restapiexample.com/"
+			},
+			{
+				"id": "4",
+				"id_service": "",
+				"path": "static/**",
+				"url": [
+					"https://doc.expo.io",
+					"http://docs.expo.io"
+				],
+				"retry": false,
+				"desc": "http://dummy.restapiexample.com/"
+			},
+			{
+				"id": "5",
+				"id_service": "",
+				"path": "/guides/**",
+				"url": [
+					"http://docs.expo.io",
+					"http://docs.expo.io"
+				],
+				"retry": false,
+				"desc": "http://dummy.restapiexample.com/"
+			}
+		]
+	}
+}
