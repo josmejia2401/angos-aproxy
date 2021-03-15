@@ -2,6 +2,7 @@ package co.com.angos.aproxy.dto.socket;
 
 import java.net.Socket;
 
+@Deprecated
 public class RequestDTO {
 
 	private Socket socket;

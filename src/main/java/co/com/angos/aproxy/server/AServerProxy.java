@@ -10,20 +10,19 @@ import org.apache.logging.log4j.Logger;
 import co.com.angos.aproxy.Application;
 import co.com.angos.aproxy.config.Config;
 import co.com.angos.aproxy.dto.config.ConfigDTO;
-import co.com.angos.aproxy.dto.socket.RequestDTO;
-import co.com.angos.aproxy.queue.Pool;
+import co.com.angos.aproxy.queue.ThreadPoolCustom;
 
 public class AServerProxy {
 
 	private static Logger LOGGER = LogManager.getLogger(Application.class);
 
-	private final Pool pool;
+	private final ThreadPoolCustom pool;
 	private final ConfigDTO config;
 	private ServerSocket server;
 
 	public AServerProxy() throws IOException {
 		this.config = Config.load();
-		this.pool = new Pool(config);
+		this.pool = new ThreadPoolCustom(config);
 	}
 
 	private void start() throws IOException {
@@ -37,10 +36,7 @@ public class AServerProxy {
 			this.start();
 			while (true) {
 				final Socket socketAccept = server.accept();
-				RequestDTO r = new RequestDTO();
-				r.setSocket(socketAccept);
-				this.getPool().add_item(r);
-				this.getPool().run();
+				this.getPool().addItem(socketAccept);
 			}
 		} catch (Exception e) {
 			System.err.println(e);
@@ -59,7 +55,7 @@ public class AServerProxy {
 		}
 	}
 
-	public Pool getPool() {
+	public ThreadPoolCustom getPool() {
 		return pool;
 	}
 

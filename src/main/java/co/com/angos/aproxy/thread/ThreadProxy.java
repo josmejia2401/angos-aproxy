@@ -12,7 +12,7 @@ import co.com.angos.aproxy.util.UtilidadSocket;
 
 public class ThreadProxy extends Thread {
 
-	private final Socket socketAccept;
+	private Socket socketAccept;
 	private final UtilidadSocket utilidadSocket;
 	private final ConfigDTO config;
 	private Socket client;
@@ -24,17 +24,7 @@ public class ThreadProxy extends Thread {
 	public ThreadProxy(ConfigDTO config, Socket socketAccept) {
 		this.config = config;
 		this.socketAccept = socketAccept;
-		this.utilidadSocket = new UtilidadSocket(this.config);
-	}
-
-	private void readInSocketAccept() throws IOException, Exception {
-		try {
-			final OutputStream stream = client.getOutputStream();
-			this.utilidadSocket.readAndWriteHeaders(inSocketAccept, stream);
-		} catch (Exception e) {
-			this.utilidadSocket.responseWithCode(outSocketAccept, 500, "", "");
-			throw e;
-		}
+		this.utilidadSocket = new UtilidadSocket(this.getConfig());
 	}
 
 	private void readInSocketAccept(byte[] bytesAll) throws IOException, Exception {
@@ -71,6 +61,16 @@ public class ThreadProxy extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void cleanAll() {
+		this.closeClient();
+		socketAccept = null;
+		client = null;
+		inSocketAccept = null;
+		outSocketAccept = null;
+		finish = false;
+		running = false;
 	}
 
 	@Override
@@ -148,16 +148,16 @@ public class ThreadProxy extends Thread {
 		return utilidadSocket;
 	}
 
-	public Socket getClient() {
-		return client;
-	}
-
-	public void setClient(Socket client) {
-		this.client = client;
-	}
-
 	public ConfigDTO getConfig() {
 		return config;
+	}
+
+	public Socket getSocketAccept() {
+		return socketAccept;
+	}
+
+	public void setSocketAccept(Socket socketAccept) {
+		this.socketAccept = socketAccept;
 	}
 
 

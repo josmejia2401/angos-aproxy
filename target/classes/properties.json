@@ -10,11 +10,11 @@
 		"defaulta": {
 			"connect_timeout_millis": 10000,
 			"socket_timeout_millis": 10000,
+			"keep_alive_millis" : 5000,
 			"max_total_connections": 50,
 			"max_core_connections": 1,
-			"max_reuse_threads": 0,
-			"max_queue_listen": 2500,
-			"max_length_recv": 2048,
+			"max_queue_listen": 500,
+			"max_length_recv": 1024,
 			"reuseAddress": true,
 			"retry": {
 				"max_auto_retry": 0,
@@ -31,7 +31,7 @@
 				"id_service": "",
 				"path": "/todos/*",
 				"url": [
-					"http://jsonplaceholder.typicode.com",
+					"https://jsonplaceholder.typicode.com",
 					"http://jsonplaceholder.typicode.com",
 					"https://jsonplaceholder.typicode.com"
 				],
@@ -43,6 +43,7 @@
 				"id_service": "",
 				"path": "/api/v1/**",
 				"url": [
+					"https://dummy.restapiexample.com",
 					"https://dummy.restapiexample.com"
 				],
 				"retry": false,
