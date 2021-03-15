@@ -3,7 +3,7 @@
 		"name": ""
 	},
 	"server": {
-		"port": 9090,
+		"port": 8081,
 		"hostname": "localhost"
 	},
 	"aproxy": {

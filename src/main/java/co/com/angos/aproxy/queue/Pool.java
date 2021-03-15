@@ -13,9 +13,9 @@ import co.com.angos.aproxy.dto.config.ConfigDTO;
 import co.com.angos.aproxy.dto.socket.RequestDTO;
 import co.com.angos.aproxy.thread.ThreadProxy;
 
-public class AQueue {
+public class Pool {
 
-	private static final Logger LOGGER = LogManager.getLogger(AQueue.class);
+	private static final Logger LOGGER = LogManager.getLogger(Pool.class);
 
 	private final static Queue<RequestDTO> _QUEUE = new LinkedList<>();
 	private final List<ThreadProxy> pool_thread_proxy = new ArrayList<ThreadProxy>();
@@ -23,7 +23,7 @@ public class AQueue {
 	private final ConfigDTO config;
 	private boolean runnig = false;
 
-	public AQueue(ConfigDTO config) {
+	public Pool(ConfigDTO config) {
 		this.config = config;
 	}
 
@@ -66,8 +66,8 @@ public class AQueue {
 				try {
 					if (!getQueue().isEmpty()) {
 						RequestDTO request = getQueue().poll();
-						ThreadProxy thP = new ThreadProxy(request.getSocket(), "jsonplaceholder.typicode.com", 80);
-						this.getPool_thread_proxy().add(thP);
+						ThreadProxy thP = new ThreadProxy(this.getConfig(), request.getSocket(), "jsonplaceholder.typicode.com", 80);
+						this.getPool_thread_proxy().add(thP); 
 					} else {
 						Thread.sleep(500);
 					}

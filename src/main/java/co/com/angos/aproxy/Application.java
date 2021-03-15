@@ -15,7 +15,7 @@ public class Application {
 		LOGGER.info("INICIANDO...");
 		
 		try {
-			AServerProxy aServer = new AServerProxy(8081, 0);
+			AServerProxy aServer = new AServerProxy();
 			aServer.run();
 		} catch (IOException e) {
 			LOGGER.error("Error al iniciar el servidor", e);

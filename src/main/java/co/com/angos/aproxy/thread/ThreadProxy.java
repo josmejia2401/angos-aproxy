@@ -7,83 +7,51 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import co.com.angos.aproxy.util.ReplacingInputStream;
+import co.com.angos.aproxy.dto.config.ConfigDTO;
+import co.com.angos.aproxy.util.FileSocket;
 
 public class ThreadProxy extends Thread {
 
 	private final Socket socketAccept;
 	private final String CLIENT_HOST;
 	private final int CLIENT_PORT;
-	private final byte[] request = new byte[1024];
-	private final byte[] response = new byte[4096];
+	private final FileSocket file;
+	private final ConfigDTO config;
 	private Socket client;
 	private InputStream inSocketAccept = null;
 	private OutputStream outSocketAccept = null;
 	private boolean finish = false;
 	private boolean running = false;
 
-	public ThreadProxy(Socket socketAccept, String clientHost, int clientPort) {
+	public ThreadProxy(ConfigDTO config, Socket socketAccept, String clientHost, int clientPort) {
+		this.config = config;
 		this.CLIENT_HOST = clientHost;
 		this.CLIENT_PORT = clientPort;
 		this.socketAccept = socketAccept;
+		this.file = new FileSocket(this.config);
 	}
 
-	private void readInSocketAccept() throws IOException {
-		// Thread writeResponse = new Thread(() -> {
+	private void readInSocketAccept() throws IOException, Exception {
 		try {
-			int bytes_read;
 			final OutputStream stream = client.getOutputStream();
-			
-			/*InputStream ris = new ReplacingInputStream(inSocketAccept, "localhost:8081", "jsonplaceholder.typicode.com");
-			while (client.isConnected() && (bytes_read = ris.read(request)) != -1) {
-				stream.write(request, 0, bytes_read);
-				System.out.println("request" + new String(request));
-	        	stream.flush();
-				if (inSocketAccept.available() == 0) {
-					break;
-				}
-	        }
-			*/
-			while (client.isConnected() && (bytes_read = inSocketAccept.read(request)) != -1) {
-				stream.write(request, 0, bytes_read);
-				stream.flush();
-				System.out.println("request=>" + bytes_read + "-"+ new String(request));
-				if (inSocketAccept.available() == 0) {
-					break;
-				}
-			}
-			
+			this.file.readAndWriteHeaders(inSocketAccept, stream);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		 //});
-		 //writeResponse.start();
-		// inSocketAccept.transferTo(stream);
-		// stream.flush();
 	}
 
 	private void readOutSocketAccept() throws IOException {
 		try (final InputStream is = client.getInputStream();) {
-			int bytes_read;
-			while (client.isConnected() && (bytes_read = is.read(response)) != -1) {
-				outSocketAccept.write(response, 0, bytes_read);
-				outSocketAccept.flush();
-				if (is.available() == 0) {
-					break;
-				}
-			}
+			this.file.readAndWrite(is, outSocketAccept);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		// byte[] buffer = new byte[stream.available()];
-		// stream.read(buffer);
-		// outSocketAccept.write(buffer);
-		// outSocketAccept.flush();
 	}
 
 	private void connect() {
 		try {
-			client = new Socket(this.CLIENT_HOST, this.CLIENT_PORT);
+			this.client = new Socket(this.CLIENT_HOST, this.CLIENT_PORT);
+			this.client.setSoTimeout(this.getConfig().getAproxy().getDefaulta().getConnect_timeout_millis());
 			System.out.println("Conectado a " + this.CLIENT_HOST);
 		} catch (IOException e) {
 			PrintWriter out = new PrintWriter(new OutputStreamWriter(outSocketAccept));
@@ -114,6 +82,8 @@ public class ThreadProxy extends Thread {
 			this.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		} finally {
 			this.setFinish(true);
 			this.setRunning(false);
@@ -134,6 +104,14 @@ public class ThreadProxy extends Thread {
 
 	public void setRunning(boolean running) {
 		this.running = running;
+	}
+
+	public FileSocket getFile() {
+		return file;
+	}
+
+	public ConfigDTO getConfig() {
+		return config;
 	}
 
 }

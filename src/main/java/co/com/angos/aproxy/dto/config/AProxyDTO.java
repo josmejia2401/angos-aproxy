@@ -1,9 +1,11 @@
 package co.com.angos.aproxy.dto.config;
 
+import java.util.List;
+
 public class AProxyDTO {
 	private DefaultDTO defaulta;
-	private RouteDTO[] routes;
-	
+	private List<RouteDTO> routes;
+
 	public DefaultDTO getDefaulta() {
 		return defaulta;
 	}
@@ -12,11 +14,11 @@ public class AProxyDTO {
 		this.defaulta = defaulta;
 	}
 
-	public RouteDTO[] getRoutes() {
+	public List<RouteDTO> getRoutes() {
 		return routes;
 	}
 
-	public void setRoutes(RouteDTO[] routes) {
+	public void setRoutes(List<RouteDTO> routes) {
 		this.routes = routes;
 	}
 
