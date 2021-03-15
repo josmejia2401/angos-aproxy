@@ -3,6 +3,7 @@ package co.com.angos.aproxy.queue;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.stream.IntStream;
 
@@ -59,6 +60,19 @@ public class Pool {
 			this.createCoreThread(i);
 		}
 	}
+	
+	private ThreadProxy getNextThread(RequestDTO request) {
+		if (this.getConfig().getAproxy().getDefaulta().getMax_reuse_threads() > 0) {
+			Optional<ThreadProxy> op = this.getPool_thread_proxy().stream().filter(p-> p.isFinish() && !p.isRunning()).findFirst();
+			if (op.isPresent()) {
+				return op.get();
+			} else {
+				return new ThreadProxy(this.getConfig(), request.getSocket());
+			}
+		} else {
+			return new ThreadProxy(this.getConfig(), request.getSocket());
+		}
+	}
 
 	private void createCoreThread(int i) {
 		Thread thread = new Thread(() -> {
@@ -66,10 +80,10 @@ public class Pool {
 				try {
 					if (!getQueue().isEmpty()) {
 						RequestDTO request = getQueue().poll();
-						ThreadProxy thP = new ThreadProxy(this.getConfig(), request.getSocket(), "jsonplaceholder.typicode.com", 80);
+						ThreadProxy thP = this.getNextThread(request);
 						this.getPool_thread_proxy().add(thP); 
 					} else {
-						Thread.sleep(500);
+						Thread.sleep(300);//300 ms
 					}
 				} catch (InterruptedException e) {
 					LOGGER.error("Error al intentar ejecutar los hilos dormidos", e);
@@ -81,7 +95,11 @@ public class Pool {
 	}
 
 	private void clear_thread_dead() {
-		this.getPool_thread_proxy().removeIf(p -> p.isFinish() && !p.isRunning());
+		if (this.getConfig().getAproxy().getDefaulta().getMax_reuse_threads() > 0) {
+			this.getPool_thread_proxy().removeIf(p -> p.isFinish() && !p.isRunning() && this.getPool_thread_proxy().size() > this.getConfig().getAproxy().getDefaulta().getMax_reuse_threads());
+		} else {
+			this.getPool_thread_proxy().removeIf(p -> p.isFinish() && !p.isRunning());	
+		}
 	}
 
 	private int get_total_thread_running() {
@@ -95,7 +113,6 @@ public class Pool {
 		final int max_total_conn = this.getConfig().getAproxy().getDefaulta().getMax_total_connections();
 		this.getPool_thread_proxy().forEach(p -> {
 			if (!p.isFinish() && !p.isRunning() && get_total_thread_running() < max_total_conn) {
-				System.out.println("inciando el th" + p.getName());
 				p.start();
 			}
 		});

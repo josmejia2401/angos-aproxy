@@ -8,6 +8,8 @@ public class DefaultDTO {
 	private int max_core_connections = 1;
 	private int max_queue_listen = 2500;
 	private int max_length_recv = 2048;
+	private int max_reuse_threads = 10;
+	private boolean reuseAddress = true;
 	private RetryDTO retry;
 
 	public int getConnect_timeout_millis() {
@@ -64,6 +66,22 @@ public class DefaultDTO {
 
 	public void setRetry(RetryDTO retry) {
 		this.retry = retry;
+	}
+
+	public int getMax_reuse_threads() {
+		return max_reuse_threads;
+	}
+
+	public void setMax_reuse_threads(int max_reuse_threads) {
+		this.max_reuse_threads = max_reuse_threads;
+	}
+
+	public boolean isReuseAddress() {
+		return reuseAddress;
+	}
+
+	public void setReuseAddress(boolean reuseAddress) {
+		this.reuseAddress = reuseAddress;
 	}
 
 }

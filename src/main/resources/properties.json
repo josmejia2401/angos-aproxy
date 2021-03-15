@@ -12,13 +12,16 @@
 			"socket_timeout_millis": 10000,
 			"max_total_connections": 50,
 			"max_core_connections": 1,
+			"max_reuse_threads": 0,
 			"max_queue_listen": 2500,
 			"max_length_recv": 2048,
+			"reuseAddress": true,
 			"retry": {
-				"max_auto_retry": 1,
+				"max_auto_retry": 0,
 				"retryable_status_code": [
 					500,
-					400
+					400,
+					304
 				]
 			}
 		},
@@ -40,7 +43,7 @@
 				"id_service": "",
 				"path": "/api/v1/**",
 				"url": [
-					"http://dummy.restapiexample.com"
+					"https://dummy.restapiexample.com"
 				],
 				"retry": false,
 				"desc": "http://dummy.restapiexample.com/"

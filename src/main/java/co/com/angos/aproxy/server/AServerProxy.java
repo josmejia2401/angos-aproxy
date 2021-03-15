@@ -22,17 +22,13 @@ public class AServerProxy {
 	private ServerSocket server;
 
 	public AServerProxy() throws IOException {
-		//if (localport < 0) {
-		//	throw new IllegalArgumentException("insuficient arguments");
-		//}
 		this.config = Config.load();
 		this.pool = new Pool(config);
 	}
 
 	private void start() throws IOException {
 		this.server = new ServerSocket(this.getConfig().getServer().getPort(), this.getConfig().getAproxy().getDefaulta().getMax_queue_listen());
-		//this.server.setSoTimeout(this.getConfig().getAproxy().getDefaulta().getSocket_timeout_millis());
-		this.server.setReuseAddress(true);
+		this.server.setReuseAddress(this.getConfig().getAproxy().getDefaulta().isReuseAddress());
 	}
 
 	public void run() {
