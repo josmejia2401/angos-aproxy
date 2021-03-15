@@ -28,8 +28,11 @@ hs_err_pid*
 .settings/
 
 target/
-target/**
 target/*
+*target/*
 target
 
-
+log
+log/
+log/*
+log/**

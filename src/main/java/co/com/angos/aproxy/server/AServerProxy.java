@@ -11,6 +11,7 @@ import co.com.angos.aproxy.Application;
 import co.com.angos.aproxy.config.Config;
 import co.com.angos.aproxy.dto.config.ConfigDTO;
 import co.com.angos.aproxy.queue.ThreadPoolCustom;
+import co.com.angos.aproxy.util.LoadFile;
 
 public class AServerProxy {
 
@@ -21,6 +22,7 @@ public class AServerProxy {
 	private ServerSocket server;
 
 	public AServerProxy() throws IOException {
+		LoadFile.printBanner();
 		this.config = Config.load();
 		this.pool = new ThreadPoolCustom(config);
 	}
