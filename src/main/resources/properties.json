@@ -12,10 +12,10 @@
 			"socket_timeout_millis": 10000,
 			"keep_alive_millis" : 5000,
 			"max_total_connections": 50,
-			"max_core_connections": 1,
+			"max_core_connections": 5,
 			"max_queue_listen": 500,
-			"max_length_recv": 1024,
-			"reuseAddress": true,
+			"max_length_recv": 2048,
+			"reuseAddress": false,
 			"retry": {
 				"max_auto_retry": 0,
 				"retryable_status_code": [
@@ -32,7 +32,7 @@
 				"path": "/todos/*",
 				"url": [
 					"https://jsonplaceholder.typicode.com",
-					"http://jsonplaceholder.typicode.com",
+					"https://jsonplaceholder.typicode.com",
 					"https://jsonplaceholder.typicode.com"
 				],
 				"retry": true,
@@ -43,7 +43,7 @@
 				"id_service": "",
 				"path": "/api/v1/**",
 				"url": [
-					"https://dummy.restapiexample.com",
+					"http://dummy.restapiexample.com",
 					"https://dummy.restapiexample.com"
 				],
 				"retry": false,
@@ -78,6 +78,16 @@
 				"url": [
 					"http://docs.expo.io",
 					"http://docs.expo.io"
+				],
+				"retry": false,
+				"desc": "http://dummy.restapiexample.com/"
+			},
+			{
+				"id": "6",
+				"id_service": "",
+				"path": "/**",
+				"url": [
+					"http://localhost:9005"
 				],
 				"retry": false,
 				"desc": "http://dummy.restapiexample.com/"

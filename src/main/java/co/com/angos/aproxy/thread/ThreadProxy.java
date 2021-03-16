@@ -6,20 +6,23 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.stream.IntStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import co.com.angos.aproxy.dto.config.ConfigDTO;
 import co.com.angos.aproxy.dto.config.RouteDTO;
 import co.com.angos.aproxy.util.UtilidadSocket;
 
 public class ThreadProxy extends Thread {
 
+	private static final Logger LOGGER = LogManager.getLogger(ThreadProxy.class);
+	
 	private Socket socketAccept;
 	private final UtilidadSocket utilidadSocket;
 	private final ConfigDTO config;
 	private Socket client;
 	private InputStream inSocketAccept = null;
 	private OutputStream outSocketAccept = null;
-	private boolean finish = false;
-	private boolean running = false;
 
 	public ThreadProxy(ConfigDTO config, Socket socketAccept) {
 		this.config = config;
@@ -31,7 +34,7 @@ public class ThreadProxy extends Thread {
 		try {
 			this.getUtilidadSocket().write(bytesAll, client.getOutputStream());
 		} catch (Exception e) {
-			this.utilidadSocket.responseWithCode(outSocketAccept, 500, "", "");
+			LOGGER.error(e);
 			throw e;
 		}
 	}
@@ -39,6 +42,7 @@ public class ThreadProxy extends Thread {
 		try (final InputStream is = client.getInputStream();) {
 			return this.utilidadSocket.readAndWrite(is, outSocketAccept, this.getConfig().getAproxy().getDefaulta().getRetry().getRetryable_status_code(), lastRetry);
 		} catch (IOException e) {
+			LOGGER.error(e);
 			throw e;
 		}
 	}
@@ -49,7 +53,7 @@ public class ThreadProxy extends Thread {
 				client.close();
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 	}
 	private void close() {
@@ -59,7 +63,7 @@ public class ThreadProxy extends Thread {
 				socketAccept.close();
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 	}
 	
@@ -69,19 +73,16 @@ public class ThreadProxy extends Thread {
 		client = null;
 		inSocketAccept = null;
 		outSocketAccept = null;
-		finish = false;
-		running = false;
 	}
 
 	@Override
 	public void run() {
 		byte[] bytesAll = null;
 		try {
-			this.setFinish(false);
-			this.setRunning(true);
 			inSocketAccept = socketAccept.getInputStream();
 			outSocketAccept = socketAccept.getOutputStream();
-			Object[] result = this.getUtilidadSocket().getBytes(inSocketAccept);
+			//Object[] result = this.getUtilidadSocket().getBytesAndRouteAndInfo(inSocketAccept);
+			Object[] result = this.getUtilidadSocket().getBytesAndRouteAndInfoHeaders(inSocketAccept);
 			final RouteDTO route = (RouteDTO) result[0];
 			//RequestInfoDTO requestInfo = (RequestInfoDTO) result[1];
 			bytesAll = (byte[]) result[2];
@@ -117,31 +118,16 @@ public class ThreadProxy extends Thread {
 				}
 			}
 		} catch (IOException e) {
+			LOGGER.error(e);
 			this.utilidadSocket.responseWithCode(outSocketAccept, 500, "", "");
 		} catch (Exception e) {
+			LOGGER.error(e);
 			this.utilidadSocket.responseWithCode(outSocketAccept, 500, "", "");
 		} finally {
 			bytesAll = null;
 			this.close();
-			this.setFinish(true);
-			this.setRunning(false);
+			this.cleanAll();
 		}
-	}
-
-	public boolean isFinish() {
-		return finish;
-	}
-
-	public void setFinish(boolean finish) {
-		this.finish = finish;
-	}
-
-	public boolean isRunning() {
-		return running;
-	}
-
-	public void setRunning(boolean running) {
-		this.running = running;
 	}
 
 	public UtilidadSocket getUtilidadSocket() {
@@ -159,6 +145,4 @@ public class ThreadProxy extends Thread {
 	public void setSocketAccept(Socket socketAccept) {
 		this.socketAccept = socketAccept;
 	}
-
-
 }

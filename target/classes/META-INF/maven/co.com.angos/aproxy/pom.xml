@@ -18,7 +18,7 @@
 		<project.performance.fork>true</project.performance.fork>
 		<project.performance.meminitial>512m</project.performance.meminitial>
 		<project.performance.maxmem>1024m</project.performance.maxmem>
-		<project.performance.argLine>-XX:MaxPermSize=1024M</project.performance.argLine>
+		<project.performance.argLine>-XX:MaxPermSize=1024M -XX:+UseParNewGC</project.performance.argLine>
 		<start-class>co.com.angos.aproxy.Application</start-class>
 
 		<log4j2-version>2.14.1</log4j2-version>

@@ -14,6 +14,9 @@ import java.util.stream.Collector;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import co.com.angos.aproxy.dto.config.ConfigDTO;
 import co.com.angos.aproxy.dto.config.RouteDTO;
 import co.com.angos.aproxy.dto.socket.RequestInfoDTO;
@@ -21,6 +24,11 @@ import co.com.angos.aproxy.dto.socket.ResponseInfoDTO;
 
 public class UtilidadSocket {
 
+	private static final Logger LOGGER = LogManager.getLogger(UtilidadSocket.class);
+	
+	private static final String[] protocols = new String[]{"TLSv1.3"};
+    private static final String[] cipher_suites = new String[]{"TLS_AES_256_GCM_SHA384"};
+    
 	private final byte[] request;
 	private final byte[] response;
 
@@ -44,8 +52,10 @@ public class UtilidadSocket {
 			if (port == -1) {
 				if (url.getProtocol().equalsIgnoreCase("https")) {
 					port = 443;
-					SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+					SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 			        SSLSocket client = (SSLSocket)factory.createSocket(url.getHost(), 443);
+			        client.setEnabledProtocols(protocols);
+			        //client.setEnabledCipherSuites(cipher_suites);
 			        client.startHandshake();
 			        client.setSoTimeout(this.getConfig().getAproxy().getDefaulta().getConnect_timeout_millis());
 			        return client;
@@ -91,6 +101,19 @@ public class UtilidadSocket {
 		return this.proxySelect.getRoute(requestInfo.getPath());
 	}
 	
+	private ResponseInfoDTO getRequestInfoResponse(byte[] newRequest) {
+		String requestAsString = new String(newRequest);
+		String[] allLine = requestAsString.split("\n");
+		String firstLine = allLine[0];
+		String protocol = firstLine.split(" ")[0];
+		String statusCode = firstLine.split(" ")[1];
+		String statusText = firstLine.split(" ")[2];
+		ResponseInfoDTO requestInfo = new ResponseInfoDTO();
+		requestInfo.setProtocol(protocol);
+		requestInfo.setStatusCode(statusCode);
+		requestInfo.setStatusText(statusText);
+		return requestInfo;
+	}
 	
 	public void responseWithCode(OutputStream os, int statusCode, String statusText, String body) {
 		try {
@@ -100,11 +123,11 @@ public class UtilidadSocket {
 	        os.write("\r\n".getBytes());
 	        os.write(String.format("%s", body).getBytes());
 		} catch (IOException e) {
-			
+			LOGGER.error("responseWithCode", e);
 		}
 	}
 	
-	public Object[] getBytes(InputStream is) throws IOException, Exception {
+	public Object[] getBytesAndRouteAndInfoHeaders(InputStream is) throws IOException, Exception {
 		try {
 			if (is == null) {
 				throw new IllegalArgumentException("insuficient arguments");
@@ -145,12 +168,51 @@ public class UtilidadSocket {
 			}
 			return new Object[] { route, requestInfo, buff.array() };
 		} catch (IOException e) {
+			LOGGER.error("getBytesAndRouteAndInfo", e);
 			throw e;
 		}
 	}
 	
-	
-	
+	public Object[] getBytesAndRouteAndInfo(InputStream is) throws IOException, Exception {
+		try {
+			if (is == null) {
+				throw new IllegalArgumentException("insuficient arguments");
+			}
+			int bytesRead;
+			
+			boolean replaceHost = false;
+			ByteBuffer buff = null;
+			RequestInfoDTO requestInfo = null;
+			RouteDTO route = null;
+			int available = is.available();
+			while ((bytesRead = is.read(request)) != -1) {
+				if (!replaceHost) {
+					replaceHost = true;
+					requestInfo = this.getRequestInfo(request);
+					route = this.getRoute(requestInfo);
+					if (request.length >= available) {
+						buff = ByteBuffer.wrap(new byte[request.length]);
+					} else if (request.length <= bytesRead) {
+						int diff = Math.abs(bytesRead - request.length);
+						int newAvailable = available - diff;
+						buff = ByteBuffer.wrap(new byte[newAvailable]);
+					} else  {
+						int diff = Math.abs(bytesRead - request.length);
+						int newAvailable = available + diff;
+						buff = ByteBuffer.wrap(new byte[newAvailable]);
+					}
+				}
+				buff.put(request);
+				if (is.available() == 0) {
+					break;
+				}
+			}
+			return new Object[] { route, requestInfo, buff.array() };
+		} catch (IOException e) {
+			LOGGER.error("getBytesAndRouteAndInfo", e);
+			throw e;
+		}
+	}
 
 	public void readAndWriteHeaders(InputStream is, OutputStream os) throws IOException, Exception {
 		try {
@@ -159,7 +221,6 @@ public class UtilidadSocket {
 			}
 			int bytesRead;
 			boolean replaceHost = false;
-			byte[] requestAsByte = null;
 			while ((bytesRead = is.read(request)) != -1) {
 				if (!replaceHost) {
 					replaceHost = true;
@@ -180,10 +241,11 @@ public class UtilidadSocket {
 				}
 			}
 		} catch (IOException e) {
+			LOGGER.error("readAndWriteHeaders", e);
 			throw e;
 		}
 	}
-
+	
 	
 	public void write(byte[] is, OutputStream os) throws IOException {
 		try {
@@ -193,23 +255,11 @@ public class UtilidadSocket {
 			os.write(is, 0, is.length);
 			os.flush();
 		} catch (IOException e) {
+			LOGGER.error("write", e);
 			throw e;
 		}
 	}
 	
-	private ResponseInfoDTO getRequestInfoResponse(byte[] newRequest) {
-		String requestAsString = new String(newRequest);
-		String[] allLine = requestAsString.split("\n");
-		String firstLine = allLine[0];
-		String protocol = firstLine.split(" ")[0];
-		String statusCode = firstLine.split(" ")[1];
-		String statusText = firstLine.split(" ")[2];
-		ResponseInfoDTO requestInfo = new ResponseInfoDTO();
-		requestInfo.setProtocol(protocol);
-		requestInfo.setStatusCode(statusCode);
-		requestInfo.setStatusText(statusText);
-		return requestInfo;
-	}
 	
 	public boolean readAndWrite(InputStream is, OutputStream os, int[] codesRetry, boolean lastRetry) throws IOException {
 		try {
@@ -238,6 +288,7 @@ public class UtilidadSocket {
 			}
 			return false;
 		} catch (IOException e) {
+			LOGGER.error("readAndWrite", e);
 			throw e;
 		}
 	}
